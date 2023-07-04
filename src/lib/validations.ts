@@ -11,3 +11,14 @@ const Session = z.object({
 });
 
 export type Z_Session = z.infer<typeof Session>;
+
+export const updateAgendaAPI = z.object({
+  id: z.string(),
+  newStatus: z.string(),
+});
+
+export const createAgendaAPI = z.object({
+  title: z.string(),
+  image: z.string().nullable() || z.null(),
+  type: z.string(),
+});

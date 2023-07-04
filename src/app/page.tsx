@@ -4,28 +4,9 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "./api/auth/[...nextauth]/route";
 import Agenda from "@/components/agenda";
 import { Z_Session } from "@/lib/validations";
-import prisma from "@/lib/prisma";
-import { categorizedAgenda } from "@/lib/categorizedAgenda";
-
-// const userAgendas = async (userId: string) => {
-//   const agendas = await prisma.agenda.findMany({
-//     where: {
-//       userId: userId,
-//       status: {
-//         in: ["TODO", "DONE", "INPROGRESS"],
-//       },
-//     },
-//     orderBy: {
-//       createdAt: "desc",
-//     },
-//   });
-//   return categorizedAgenda(agendas);
-// };
 
 export default async function Home() {
   const session: Z_Session | null = await getServerSession(authOptions);
-  // const agendas = await userAgendas(session?.user.id!);
-
   return (
     <main className="w-full flex flex-col">
       <div className="h-[350px] w-full relative">

@@ -1,6 +1,6 @@
 "use client";
 import type { Agenda } from "@prisma/client";
-import { useState, useEffect, startTransition, Suspense } from "react";
+import { useState, useEffect } from "react";
 import {
   DragDropContext,
   Draggable,
@@ -32,21 +32,29 @@ import {
 } from "@/components/ui/select";
 import { UploadButton } from "@/utils/uploadthing";
 import { useToast } from "./ui/use-toast";
-import { useRouter } from "next/navigation";
 import { categorizedAgenda } from "@/lib/categorizedAgenda";
+import { useAgendaStore } from "@/lib/store";
+import {
+  createAgendasType,
+  deleteAgendasType,
+  updateAgendasType,
+} from "@/lib/api-fucns";
 
 const Agenda = () => {
-  const [state, setState] = useState<Map<string, Agenda[]>>(new Map());
-  useQuery({
-    queryKey: ["test"],
+  const [state, setState] = useAgendaStore((state) => [
+    state.agendas,
+    state.setAgendas,
+  ]);
+  const { data } = useQuery({
+    queryKey: ["agendas"],
     queryFn: async () => {
-      const res = await fetch("http://localhost:3000/api/agenda");
-      const agendas = await res.json();
-      const categories = await categorizedAgenda(agendas);
-      setState(categories);
-      return categories;
+      const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/agenda`);
+      const data = await res.json();
+      const categorized = await categorizedAgenda(data);
+      return categorized;
     },
   });
+
   const [title, setTitle] = useState<string>("");
   const [type, setType] = useState<string>("");
   const [image, setImage] = useState<string | null>(null);
@@ -56,53 +64,10 @@ const Agenda = () => {
     typeof window !== "undefined" && window.innerWidth < 768
   );
 
-  const { mutate: createAgenda } = useMutation({
-    mutationFn: async ({
-      data,
-    }: {
-      data: { title: string; image: string | null; type: string };
-    }) => {
-      return fetch("/api/agenda/create", {
-        method: "POST",
-        body: JSON.stringify({ data }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }).then((res) => res.json());
-    },
-    onError: (err: any) => {},
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["agendas"] });
-      queryClient.invalidateQueries({ queryKey: ["test"] });
-      toast({
-        title: "Success",
-        description: "Agenda created successfully!",
-        color: "green",
-      });
-    },
-  });
-
-  const { mutate: deleteAgenda } = useMutation({
-    mutationFn: async ({ id }: { id: string }) => {
-      return fetch("/api/agenda/delete", {
-        method: "POST",
-        body: JSON.stringify({ id }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }).then((res) => res.json());
-    },
-    onError: (err: any) => {},
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["agendas"] });
-      queryClient.invalidateQueries({ queryKey: ["test"] });
-      toast({
-        title: "Success",
-        description: "Agenda deleted successfully!",
-        color: "green",
-      });
-    },
-  });
+  useEffect(() => {
+    if (!data) return;
+    setState(data);
+  }, [data]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -117,19 +82,43 @@ const Agenda = () => {
     };
   }, [window]);
 
-  const { mutate: updateDB } = useMutation({
-    mutationFn: ({ data, newStatus }: { data: Agenda; newStatus: string }) => {
-      return fetch("/api/agenda", {
-        method: "POST",
-        body: JSON.stringify({ data, newStatus }),
-        headers: {
-          "Content-Type": "application/json",
-        },
+  const { mutate: createAgenda } = useMutation({
+    mutationFn: createAgendasType,
+    onError: (err: any) => {},
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["agendas"] });
+      queryClient.invalidateQueries({ queryKey: ["gpt-suggestion"] });
+      toast({
+        title: "Success",
+        description: "Agenda created successfully!",
+        color: "green",
       });
     },
+  });
 
+  const { mutate: deleteAgenda } = useMutation({
+    mutationFn: deleteAgendasType,
+    onError: (err: any) => {
+      console.log(err);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["agendas"] });
+      queryClient.invalidateQueries({ queryKey: ["gpt-suggestion"] });
+      toast({
+        title: "Success",
+        description: "Agenda deleted successfully!",
+        color: "green",
+      });
+    },
+  });
+
+  const { mutate: updateDB } = useMutation({
+    mutationFn: updateAgendasType,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["agendas"],
+      });
+      queryClient.invalidateQueries({ queryKey: ["gpt-suggestion"] });
     },
   });
 
@@ -157,7 +146,7 @@ const Agenda = () => {
       finish.splice(destination.index, 0, removed);
       setState(new Map(state.entries()));
 
-      updateDB({ data: removed, newStatus: destination.droppableId });
+      updateDB({ id: removed.id, newStatus: destination.droppableId });
     }
   };
 
@@ -168,7 +157,6 @@ const Agenda = () => {
         description: "Please fill all the fields",
         variant: "destructive",
       });
-
     createAgenda({ data: { title, image, type } });
   };
 

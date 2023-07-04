@@ -1,9 +1,8 @@
 import prisma from "@/lib/prisma";
-import type { Agenda } from "@prisma/client";
 
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
-import { Z_Session } from "@/lib/validations";
+import { Z_Session, updateAgendaAPI } from "@/lib/validations";
 
 const convert: {
   [key: string]: "TODO" | "INPROGRESS" | "DONE";
@@ -14,13 +13,11 @@ const convert: {
 };
 
 export async function POST(req: Request) {
-  const { data, newStatus } = (await req.json()) as {
-    data: Agenda;
-    newStatus: string;
-  };
+  const data = await req.json();
   try {
+    const { id, newStatus } = updateAgendaAPI.parse(data);
     await prisma.agenda.update({
-      where: { id: data.id },
+      where: { id },
       data: {
         status: convert[newStatus],
       },
@@ -37,12 +34,6 @@ export async function POST(req: Request) {
 
 export async function GET(req: Request) {
   const session: Z_Session | null = await getServerSession(authOptions);
-  if (!session) {
-    return new Response(JSON.stringify("Unauthorized"), {
-      status: 401,
-    });
-  }
-
   try {
     const agendas = await prisma.agenda.findMany({
       where: {

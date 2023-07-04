@@ -9,17 +9,21 @@ interface GPTSuggestionProps {
 }
 
 const GPTSuggestion = ({ image }: GPTSuggestionProps) => {
-  const { data, isLoading } = useQuery({
-    queryKey: ["agendas"],
+  const { data, isFetching } = useQuery({
+    queryKey: ["gpt-suggestion"],
     queryFn: async () =>
-      await fetch("http://localhost:3000/api/completions").then((res) =>
-        res.json()
+      await fetch(`${process.env.NEXT_PUBLIC_URL}/api/completions`).then(
+        (res) => res.json()
       ),
   });
+
+  // const isFetching = false;
+  // const data = "This is a suggestion";
+
   return (
     <div
       className={`${
-        isLoading && "animate-pulse"
+        isFetching && "animate-pulse"
       }  md:w-3/4 w-11/12 mx-auto mt-5  space-x-5 rounded-lg bg-white shadow-md shadow-slate-700 flex items-center py-2 px-8`}
     >
       <Avatar>
@@ -28,7 +32,7 @@ const GPTSuggestion = ({ image }: GPTSuggestionProps) => {
           <Skeleton className="h-12 w-12 rounded-full" />
         </AvatarFallback>
       </Avatar>
-      {isLoading ? (
+      {isFetching ? (
         <div className="space-y-2">
           <Skeleton className="h-4 w-[250px]" />
           <Skeleton className="h-4 w-[200px]" />

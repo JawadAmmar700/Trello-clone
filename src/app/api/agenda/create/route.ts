@@ -1,4 +1,4 @@
-import type { Agenda, Status } from "@prisma/client";
+import type { Status } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
 import { Z_Session } from "@/lib/validations";
@@ -21,6 +21,7 @@ export async function POST(req: Request) {
       status: 200,
     });
   } catch (error) {
+    console.log(error);
     return new Response(JSON.stringify("SomeThing went wrong"), {
       status: 500,
     });
