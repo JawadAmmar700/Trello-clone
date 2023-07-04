@@ -2,6 +2,7 @@ import type { Status } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
 import { Z_Session } from "@/lib/validations";
+import prisma from "@/lib/prisma";
 
 export async function POST(req: Request) {
   const { data } = (await req.json()) as {
