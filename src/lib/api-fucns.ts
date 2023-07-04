@@ -5,7 +5,7 @@ export const updateAgendasType = ({
   id: string;
   newStatus: string;
 }) => {
-  return fetch("http://localhost:3000/api/agenda", {
+  return fetch(`${process.env.NEXT_PUBLIC_URL}/api/agenda`, {
     method: "POST",
     body: JSON.stringify({ id, newStatus }),
     headers: {
@@ -15,7 +15,7 @@ export const updateAgendasType = ({
 };
 
 export const deleteAgendasType = async ({ id }: { id: string }) => {
-  return fetch("http://localhost:3000/api/agenda/delete", {
+  return fetch(`${process.env.NEXT_PUBLIC_URL}/api/agenda/delete`, {
     method: "POST",
     body: JSON.stringify({ id }),
     headers: {
@@ -29,7 +29,7 @@ export const createAgendasType = async ({
 }: {
   data: { title: string; image: string | null; type: string };
 }) => {
-  return fetch("http://localhost:3000/api/agenda/create", {
+  return fetch(`${process.env.NEXT_PUBLIC_URL}/api/agenda/create`, {
     method: "POST",
     body: JSON.stringify({ data }),
     headers: {

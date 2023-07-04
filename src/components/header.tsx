@@ -5,14 +5,12 @@ import type { Session } from "next-auth";
 import Icons from "@/lib/icons";
 import { signOut } from "next-auth/react";
 import { useAgendaStore } from "@/lib/store";
-import { useState } from "react";
 
 interface HeaderProps {
   session: Session | null;
 }
 
 const Header = ({ session }: HeaderProps) => {
-  const [search, setSearch] = useState("");
   const [state, filter] = useAgendaStore((state) => [
     state.agendas,
     state.filterAgendas,
@@ -20,8 +18,6 @@ const Header = ({ session }: HeaderProps) => {
   const handleSignOut = async () => {
     await signOut();
   };
-
-  console.log(state);
 
   return (
     <div className="w-full flex items-center z-50 justify-center md:justify-between px-4 py-4 md:py-0">
@@ -31,7 +27,7 @@ const Header = ({ session }: HeaderProps) => {
           type="text"
           placeholder="Search your agenda"
           // value={search}
-          onChange={(e) => filter(e.target.value, state)}
+          onChange={(e) => filter(e.target.value)}
         />
         <Avatar onClick={handleSignOut} className="cursor-pointer">
           <AvatarImage src={session?.user?.image!} alt="user-profile" />

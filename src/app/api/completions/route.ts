@@ -42,8 +42,8 @@ export async function GET(req: Request) {
     });
 
     if (response.status !== 200) {
-      return new Response(JSON.stringify("SomeThing went wrong with openai"), {
-        status: 500,
+      return new Response(JSON.stringify("ChatGpt cannot generate now"), {
+        status: 505,
       });
     }
 
